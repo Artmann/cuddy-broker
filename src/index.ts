@@ -1,37 +1,29 @@
-import { DurableObject } from 'cloudflare:workers'
+import { Hono } from 'hono'
 
-import { Router } from './router'
-import { json } from './responses'
 import { createJobRoute } from './broker/routes'
+import { log } from 'tiny-typescript-logger'
 
-export class JobBroker extends DurableObject<Env> {}
+export { JobBroker } from './broker/broker'
 
-export default {
-	/**
-	 * This is the standard fetch handler for a Cloudflare Worker
-	 *
-	 * @param request - The request submitted to the Worker from the client
-	 * @param env - The interface to reference bindings declared in wrangler.jsonc
-	 * @param ctx - The execution context of the Worker
-	 * @returns The response to be sent back to the client
-	 */
-	async fetch(request, env, ctx): Promise<Response> {
-		const router = new Router(env)
+const app = new Hono<{ Bindings: Env }>()
 
-		router.get('/', async (req) => {
-			const greeting = `Welcome to the Cuddy job broker.`
+app.get('/', (c) => {
+	return c.json({ message: 'Welcome to the Cuddy job broker.' })
+})
 
-			return json({ message: greeting })
-		})
+app.get('/health', (c) => {
+	return c.json({ status: 'ok' })
+})
 
-		router.get('/health', async (req) => {
-			return json({ status: 'ok' })
-		})
+app.post('/jobs', createJobRoute)
 
-		router.post('/jobs', createJobRoute)
+app.onError((err, c) => {
+	log.error(err)
 
-		const response = await router.handle(request)
+	return c.json(
+		{ error: { message: 'Something went wrong. Please try again.' } },
+		500
+	)
+})
 
-		return response
-	}
-} satisfies ExportedHandler<Env>
+export default app
