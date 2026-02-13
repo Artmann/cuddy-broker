@@ -2,6 +2,7 @@ import { DurableObject } from 'cloudflare:workers'
 
 import { Router } from './router'
 import { json } from './responses'
+import { createJobRoute } from './broker/routes'
 
 export class JobBroker extends DurableObject<Env> {}
 
@@ -22,6 +23,12 @@ export default {
 
 			return json({ message: greeting })
 		})
+
+		router.get('/health', async (req) => {
+			return json({ status: 'ok' })
+		})
+
+		router.post('/jobs', createJobRoute)
 
 		const response = await router.handle(request)
 
