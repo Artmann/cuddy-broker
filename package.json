@@ -8,13 +8,21 @@
 		"dev": "wrangler dev",
 		"format": "prettier --write .",
 		"start": "wrangler dev",
+		"test": "vitest run",
+		"test:watch": "vitest",
 		"typecheck": "tsc --noEmit"
 	},
 	"devDependencies": {
+		"@cloudflare/vitest-pool-workers": "^0.12.12",
 		"@types/node": "^25.2.3",
 		"prettier": "^3.8.1",
 		"typescript": "^5.5.2",
+		"vitest": "~3.2.0",
 		"wrangler": "^4.65.0"
+	},
+	"overrides": {
+		"@vitest/runner": "3.2.4",
+		"@vitest/snapshot": "3.2.4"
 	},
 	"dependencies": {
 		"@hono/zod-validator": "^0.7.6",

@@ -50,7 +50,7 @@ router.post(
 
 		const job = await brokerStub.createJob(input.type, payload)
 
-		return context.json({ job })
+		return context.json({ job }, 201)
 	}
 )
 
