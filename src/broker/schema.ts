@@ -5,5 +5,8 @@ export const jobs = sqliteTable('jobs', {
 	type: text('type').notNull(),
 	payload: text('payload', { mode: 'json' }).notNull().default({}),
 	status: text('status').notNull().default('pending'),
-	createdAt: integer('created_at').notNull()
+	createdAt: integer('created_at').notNull(),
+	claimedBy: text('claimed_by'),
+	claimedAt: integer('claimed_at'),
+	leaseExpiresAt: integer('lease_expires_at')
 })

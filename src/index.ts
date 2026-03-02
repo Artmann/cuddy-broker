@@ -1,7 +1,8 @@
 import { Hono } from 'hono'
 import { log } from 'tiny-typescript-logger'
 
-import jobRoutes from './broker/routes'
+import claimRoutes from './broker/claims'
+import jobRoutes from './broker/jobs'
 import { BackendError, ValidationError } from './errors'
 
 export { JobBroker } from './broker/broker'
@@ -17,6 +18,7 @@ app.get('/health', (c) => {
 })
 
 app.route('/queues/:queueName/jobs', jobRoutes)
+app.route('/queues/:queueName/jobs/:jobId/claims', claimRoutes)
 
 app.onError((err, c) => {
 	log.error(err)
