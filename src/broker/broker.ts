@@ -24,8 +24,8 @@ export class JobBroker extends DurableObject<Env> {
 			migrate(this.db, {
 				journal,
 				migrations: {
-					m0000,
-				},
+					m0000
+				}
 			})
 		})
 	}
@@ -37,13 +37,16 @@ export class JobBroker extends DurableObject<Env> {
 		const id = crypto.randomUUID()
 		const createdAt = Date.now()
 
-		this.db.insert(jobs).values({
-			id,
-			type,
-			payload,
-			status: 'pending',
-			createdAt,
-		}).run()
+		this.db
+			.insert(jobs)
+			.values({
+				id,
+				type,
+				payload,
+				status: 'pending',
+				createdAt
+			})
+			.run()
 
 		return { id, type, payload, createdAt, status: 'pending' }
 	}
@@ -56,7 +59,7 @@ export class JobBroker extends DurableObject<Env> {
 			type: row.type,
 			payload: row.payload as Record<string, unknown>,
 			status: row.status as Job['status'],
-			createdAt: row.createdAt,
+			createdAt: row.createdAt
 		}))
 	}
 }

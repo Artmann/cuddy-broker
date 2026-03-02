@@ -4,7 +4,7 @@
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "cuddy-worker",
+	"name": "cuddy-cloudflare",
 	"main": "src/index.ts",
 	"compatibility_date": "2026-02-12",
 	"migrations": [
@@ -25,9 +25,7 @@
 		"enabled": true
 	},
 	"compatibility_flags": ["nodejs_compat"],
-	"rules": [
-		{ "type": "Text", "globs": ["**/*.sql"], "fallthrough": true }
-	]
+	"rules": [{ "type": "Text", "globs": ["**/*.sql"], "fallthrough": true }]
 	/**
 	 * Smart Placement
 	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

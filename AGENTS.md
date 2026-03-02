@@ -14,14 +14,14 @@ eg. `/workers/platform/limits`
 
 ## Commands
 
-| Command               | Purpose                   |
-| --------------------- | ------------------------- |
-| `bun run dev`         | Local development         |
-| `bun run deploy`      | Deploy to Cloudflare      |
-| `bun run test`        | Run tests (vitest)        |
-| `bun run test:watch`  | Run tests in watch mode   |
-| `bun run typecheck`   | Type-check (`tsc --noEmit`) |
-| `npx wrangler types`  | Generate TypeScript types |
+| Command              | Purpose                     |
+| -------------------- | --------------------------- |
+| `bun run dev`        | Local development           |
+| `bun run deploy`     | Deploy to Cloudflare        |
+| `bun run test`       | Run tests (vitest)          |
+| `bun run test:watch` | Run tests in watch mode     |
+| `bun run typecheck`  | Type-check (`tsc --noEmit`) |
+| `npx wrangler types` | Generate TypeScript types   |
 
 Run `wrangler types` after changing bindings in wrangler.jsonc.
 
@@ -38,15 +38,14 @@ the real Workers V8 runtime with real Durable Object bindings — no mocking.
 
 ### Test file layout
 
-| File                          | Covers                               |
-| ----------------------------- | ------------------------------------ |
-| `src/index.test.ts`           | Root endpoints (`/`, `/health`, 404) |
-| `src/broker/routes.test.ts`   | Job queue CRUD endpoints             |
+| File                        | Covers                               |
+| --------------------------- | ------------------------------------ |
+| `src/index.test.ts`         | Root endpoints (`/`, `/health`, 404) |
+| `src/broker/routes.test.ts` | Job queue CRUD endpoints             |
 
 ### Type safety in tests
 
-`response.json()` returns `unknown`. Always cast with `as` to a typed
-interface:
+`response.json()` returns `unknown`. Always cast with `as` to a typed interface:
 
 ```ts
 const body = (await response.json()) as JobResponse
@@ -56,9 +55,9 @@ const body = (await response.json()) as JobResponse
 
 - `vitest` must be `~3.2.0` (`@cloudflare/vitest-pool-workers` does not support
   Vitest 4)
-- `package.json` has `overrides` pinning `@vitest/runner` and
-  `@vitest/snapshot` to `3.2.4` — bun may otherwise hoist incompatible v4
-  versions from transitive dependencies
+- `package.json` has `overrides` pinning `@vitest/runner` and `@vitest/snapshot`
+  to `3.2.4` — bun may otherwise hoist incompatible v4 versions from transitive
+  dependencies
 
 ### tsconfig notes
 

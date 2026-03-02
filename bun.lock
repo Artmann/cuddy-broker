@@ -3,7 +3,7 @@
   "configVersion": 0,
   "workspaces": {
     "": {
-      "name": "cuddy-worker",
+      "name": "cuddy-cloudflare",
       "dependencies": {
         "@hono/zod-validator": "^0.7.6",
         "hono": "^4.11.9",
