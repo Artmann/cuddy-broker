@@ -18,7 +18,7 @@ app.get('/health', (c) => {
 })
 
 app.route('/queues/:queueName/jobs', jobRoutes)
-app.route('/queues/:queueName/jobs/:jobId/claims', claimRoutes)
+app.route('/queues/:queueName/claims', claimRoutes)
 
 app.onError((err, c) => {
 	log.error(err)
