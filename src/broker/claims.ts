@@ -3,17 +3,12 @@ import { Hono } from 'hono'
 import invariant from 'tiny-invariant'
 import z from 'zod'
 
-import type { Job } from './broker'
+import type { JobBroker } from './broker'
 import { createBrokerNameFromQueueName } from './queue'
 import { ValidationError } from '../errors'
 
 type BrokerBindings = {
-	JOB_BROKER: DurableObjectNamespace
-}
-
-type JobBrokerStub = {
-	listClaimedJobs: () => Promise<Job[]>
-	claimJob: (claimeeId: string) => Promise<Job | null>
+	JOB_BROKER: DurableObjectNamespace<JobBroker>
 }
 
 const router = new Hono<{ Bindings: BrokerBindings }>()
@@ -24,9 +19,7 @@ router.get('/', async (context) => {
 	invariant(queueName, 'The queueName param is required.')
 
 	const brokerName = createBrokerNameFromQueueName(queueName)
-	const brokerStub = context.env.JOB_BROKER.getByName(
-		brokerName
-	) as unknown as JobBrokerStub
+	const brokerStub = context.env.JOB_BROKER.getByName(brokerName)
 
 	const jobs = await brokerStub.listClaimedJobs()
 
@@ -50,9 +43,7 @@ router.post(
 		invariant(queueName, 'The queueName param is required.')
 
 		const brokerName = createBrokerNameFromQueueName(queueName)
-		const brokerStub = context.env.JOB_BROKER.getByName(
-			brokerName
-		) as unknown as JobBrokerStub
+		const brokerStub = context.env.JOB_BROKER.getByName(brokerName)
 
 		const input = context.req.valid('json')
 

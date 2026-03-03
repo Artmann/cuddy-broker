@@ -3,22 +3,24 @@ import { Hono } from 'hono'
 import invariant from 'tiny-invariant'
 import z from 'zod'
 
-import type { Job } from './broker'
+import type { JobBroker } from './broker'
 import { BackendError, ValidationError } from '../errors'
 import { createBrokerNameFromQueueName } from './queue'
 
+const PayloadValueSchema = z.union([
+	z.string(),
+	z.number(),
+	z.boolean(),
+	z.null()
+])
+
 const CreateJobSchema = z.object({
-	payload: z.record(z.string(), z.unknown()).optional().default({}),
+	payload: z.record(z.string(), PayloadValueSchema).optional().default({}),
 	type: z.string().min(1).max(255)
 })
 
 type BrokerBindings = {
-	JOB_BROKER: DurableObjectNamespace
-}
-
-type JobBrokerStub = {
-	listJobs: () => Promise<Job[]>
-	createJob: (type: string, payload: Record<string, unknown>) => Promise<Job>
+	JOB_BROKER: DurableObjectNamespace<JobBroker>
 }
 
 const router = new Hono<{ Bindings: BrokerBindings }>()
@@ -29,9 +31,7 @@ router.get('/', async (context) => {
 	invariant(queueName, 'The queueName param is required.')
 
 	const brokerName = createBrokerNameFromQueueName(queueName)
-	const brokerStub = context.env.JOB_BROKER.getByName(
-		brokerName
-	) as unknown as JobBrokerStub
+	const brokerStub = context.env.JOB_BROKER.getByName(brokerName)
 
 	const jobs = await brokerStub.listJobs()
 
@@ -59,9 +59,7 @@ router.post(
 		const payload = input.payload || {}
 
 		const brokerName = createBrokerNameFromQueueName(queueName)
-		const brokerStub = context.env.JOB_BROKER.getByName(
-			brokerName
-		) as unknown as JobBrokerStub
+		const brokerStub = context.env.JOB_BROKER.getByName(brokerName)
 
 		const job = await brokerStub.createJob(input.type, payload)
 

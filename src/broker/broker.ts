@@ -13,7 +13,8 @@ import m0000 from '../../drizzle/0000_needy_darwin.sql'
 import m0001 from '../../drizzle/0001_job_claiming.sql'
 import m0002 from '../../drizzle/0002_job_lease_tokens.sql'
 
-export type JobPayload = Record<string, any>
+export type JobPayloadValue = string | number | boolean | null
+export type JobPayload = Record<string, JobPayloadValue>
 
 export interface Job {
 	claimedAt: number | null
@@ -29,7 +30,9 @@ export interface Job {
 
 type JobRow = typeof jobs.$inferSelect
 
-interface JobBrokerEnv {}
+interface JobBrokerEnv {
+	leaseDurationInSeconds?: number
+}
 
 export class JobBroker extends DurableObject<JobBrokerEnv> {
 	private readonly db: DrizzleSqliteDODatabase
@@ -54,7 +57,15 @@ export class JobBroker extends DurableObject<JobBrokerEnv> {
 
 		const leaseToken = crypto.randomUUID()
 		const now = Date.now()
-		const leaseDuration = 5 * 60 * 1000 // 5 minutes
+		const configuredLeaseSeconds =
+			typeof this.env.leaseDurationInSeconds === 'number'
+				? this.env.leaseDurationInSeconds
+				: Number(this.env.leaseDurationInSeconds ?? 60)
+		const leaseDurationInSeconds =
+			Number.isFinite(configuredLeaseSeconds) && configuredLeaseSeconds > 0
+				? configuredLeaseSeconds
+				: 60
+		const leaseDuration = leaseDurationInSeconds * 1000
 		const leaseExpiresAt = now + leaseDuration
 
 		const claimedJob = this.db.transaction((tx) => {
