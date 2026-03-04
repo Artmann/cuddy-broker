@@ -147,7 +147,12 @@ export class JobBroker extends DurableObject<JobBrokerEnv> {
 		status: 'completed' | 'failed',
 		leaseToken: string,
 		error?: string
-	): Promise<{ type: 'ok'; job: Job } | { type: 'not_found' } | { type: 'already_finished'; status: 'completed' | 'failed' } | { type: 'lease_mismatch' }> {
+	): Promise<
+		| { type: 'ok'; job: Job }
+		| { type: 'not_found' }
+		| { type: 'already_finished'; status: 'completed' | 'failed' }
+		| { type: 'lease_mismatch' }
+	> {
 		const row = this.db.select().from(jobs).where(eq(jobs.id, jobId)).get()
 
 		if (!row) {

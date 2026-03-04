@@ -55,14 +55,11 @@ async function finishJob(
 	jobId: string,
 	payload: Record<string, unknown>
 ): Promise<Response> {
-	return SELF.fetch(
-		`http://localhost/queues/${queue}/jobs/${jobId}/finish`,
-		{
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(payload)
-		}
-	)
+	return SELF.fetch(`http://localhost/queues/${queue}/jobs/${jobId}/finish`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(payload)
+	})
 }
 
 describe('POST /queues/:queueName/jobs/:jobId/finish', () => {
@@ -167,14 +164,10 @@ describe('POST /queues/:queueName/jobs/:jobId/finish', () => {
 	})
 
 	it('returns 422 when status is failed but error is missing', async () => {
-		const response = await finishJob(
-			'finish-validation-queue-2',
-			'some-id',
-			{
-				status: 'failed',
-				leaseToken: 'some-token'
-			}
-		)
+		const response = await finishJob('finish-validation-queue-2', 'some-id', {
+			status: 'failed',
+			leaseToken: 'some-token'
+		})
 
 		expect(response.status).toEqual(422)
 
@@ -184,14 +177,10 @@ describe('POST /queues/:queueName/jobs/:jobId/finish', () => {
 	})
 
 	it('returns 422 when status is invalid', async () => {
-		const response = await finishJob(
-			'finish-validation-queue-3',
-			'some-id',
-			{
-				status: 'in-progress',
-				leaseToken: 'some-token'
-			}
-		)
+		const response = await finishJob('finish-validation-queue-3', 'some-id', {
+			status: 'in-progress',
+			leaseToken: 'some-token'
+		})
 
 		expect(response.status).toEqual(422)
 
@@ -201,14 +190,10 @@ describe('POST /queues/:queueName/jobs/:jobId/finish', () => {
 	})
 
 	it('returns 422 when leaseToken is an empty string', async () => {
-		const response = await finishJob(
-			'finish-validation-queue-4',
-			'some-id',
-			{
-				status: 'completed',
-				leaseToken: ''
-			}
-		)
+		const response = await finishJob('finish-validation-queue-4', 'some-id', {
+			status: 'completed',
+			leaseToken: ''
+		})
 
 		expect(response.status).toEqual(422)
 
