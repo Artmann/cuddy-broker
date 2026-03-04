@@ -9,5 +9,6 @@ export const jobs = sqliteTable('jobs', {
 	claimedBy: text('claimed_by'),
 	claimedAt: integer('claimed_at'),
 	leaseExpiresAt: integer('lease_expires_at'),
-	leaseToken: text('lease_token')
+	leaseToken: text('lease_token'),
+	error: text('error')
 })

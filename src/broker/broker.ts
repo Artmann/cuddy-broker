@@ -5,6 +5,7 @@ import {
 	type DrizzleSqliteDODatabase
 } from 'drizzle-orm/durable-sqlite'
 import { migrate } from 'drizzle-orm/durable-sqlite/migrator'
+import invariant from 'tiny-invariant'
 import { log } from 'tiny-typescript-logger'
 
 import { jobs } from './schema'
@@ -12,6 +13,7 @@ import journal from '../../drizzle/meta/_journal.json'
 import m0000 from '../../drizzle/0000_needy_darwin.sql'
 import m0001 from '../../drizzle/0001_job_claiming.sql'
 import m0002 from '../../drizzle/0002_job_lease_tokens.sql'
+import m0003 from '../../drizzle/0003_job_error.sql'
 
 export type JobPayloadValue = string | number | boolean | null
 export type JobPayload = Record<string, JobPayloadValue>
@@ -20,6 +22,7 @@ export interface Job {
 	claimedAt: number | null
 	claimedBy: string | null
 	createdAt: number
+	error: string | null
 	id: string
 	leaseExpiresAt: number | null
 	leaseToken: string | null
@@ -46,7 +49,8 @@ export class JobBroker extends DurableObject<JobBrokerEnv> {
 				migrations: {
 					m0000,
 					m0001,
-					m0002
+					m0002,
+					m0003
 				}
 			})
 		})
@@ -129,12 +133,57 @@ export class JobBroker extends DurableObject<JobBrokerEnv> {
 			type,
 			payload,
 			createdAt,
+			error: null,
 			status: 'pending',
 			claimedBy: null,
 			claimedAt: null,
 			leaseExpiresAt: null,
 			leaseToken: null
 		}
+	}
+
+	async finishJob(
+		jobId: string,
+		status: 'completed' | 'failed',
+		leaseToken: string,
+		error?: string
+	): Promise<{ type: 'ok'; job: Job } | { type: 'not_found' } | { type: 'already_finished'; status: 'completed' | 'failed' } | { type: 'lease_mismatch' }> {
+		const row = this.db.select().from(jobs).where(eq(jobs.id, jobId)).get()
+
+		if (!row) {
+			return { type: 'not_found' }
+		}
+
+		if (row.status === 'completed' || row.status === 'failed') {
+			return { type: 'already_finished', status: row.status }
+		}
+
+		if (row.leaseToken !== leaseToken) {
+			return { type: 'lease_mismatch' }
+		}
+
+		this.db
+			.update(jobs)
+			.set({
+				status,
+				error: error ?? null,
+				claimedBy: null,
+				claimedAt: null,
+				leaseExpiresAt: null,
+				leaseToken: null
+			})
+			.where(eq(jobs.id, jobId))
+			.run()
+
+		const updatedRow = this.db
+			.select()
+			.from(jobs)
+			.where(eq(jobs.id, jobId))
+			.get()
+
+		invariant(updatedRow, 'The job should exist after updating its status.')
+
+		return { type: 'ok', job: this.transformJob(updatedRow) }
 	}
 
 	async listClaimedJobs(): Promise<Job[]> {
@@ -159,6 +208,7 @@ export class JobBroker extends DurableObject<JobBrokerEnv> {
 			claimedAt: row.claimedAt,
 			claimedBy: row.claimedBy,
 			createdAt: row.createdAt,
+			error: row.error ?? null,
 			id: row.id,
 			leaseExpiresAt: row.leaseExpiresAt,
 			leaseToken: row.leaseToken,
